@@ -1,5 +1,6 @@
 const Resource = require('./resource');
 const p = require('./options').production;
+const config = require('./config');
 const $ = require('./modules');
 const utils = require('./utils');
 const forEach = utils.forEach;
@@ -18,19 +19,22 @@ function Task(name, args) {
 }
 Task.define = function(name, resNames, depTaskNames, fn) {
   var args = Array.prototype.slice.call(arguments, 1);
-  resNames = typeof args[0] != 'function' ? args.shift() : [];
-  depTaskNames = typeof args[0] != 'function' ? args.shift() : [];
+  resNames = (typeof args[0] != 'function' ? args.shift() : null) || [];
+  depTaskNames = (typeof args[0] != 'function' ? args.shift() : null) || [];
   fn = typeof args[0] == 'function' ? args.shift() : null;
 
   var resources = resNames.map((name)=> {return Resource(name);});
   _tasks[name] = {resources: resources};
 
   $.gulp.task(name, depTaskNames, !resources.length ? fn : ()=> {
-    for (var resource of resources) {
-      for (var res of wrapArray(resource)) {
-        fn(res);
+    var streams = [];
+    for (let resource of resources) {
+      for (let res of wrapArray(resource)) {
+        let stream = fn(res);
+        if (stream) streams.push(stream);
       }
     }
+    return streams.length ? $.mergeStream.apply(this, streams) : null;
   });
 };
 
@@ -44,7 +48,7 @@ Task.template.html = function(options) {
     minifyJS: true
   }, options || {});
   return (res)=> {
-    $.gulp.src(res.src)
+    return $.gulp.src(res.src)
       .pipe($.errorHandler())
       .pipe($.changed(res.dest))
       .pipe($.html(options))
@@ -54,9 +58,12 @@ Task.template.html = function(options) {
 Task.template.js = function(options) {
   options = extend({}, options || {});
   return (res)=> {
-    $.gulp.src(res.src)
+    return $.gulp.src(res.src)
       .pipe($.errorHandler())
+      .pipe(config.enabledEslint ? $.eslint() : $.noop())
+      .pipe(config.enabledEslint ? $.eslint.format() : $.noop())
       .pipe(p ? $.noop() : $.sourcemaps.init())
+      .pipe(config.enabledNgAnnotate ? $.ngAnnotate() : $.noop())
       .pipe(res.concat ? $.concat(res.concat) : $.noop())
       .pipe($.uglify(options))
       .pipe(p ? $.noop() : $.sourcemaps.write('./'))
@@ -66,7 +73,7 @@ Task.template.js = function(options) {
 Task.template.less = function(options) {
   options = extend({}, options || {});
   return (res)=> {
-    $.gulp.src(utils.excludeUnderscoreLess(res.src))
+    return $.gulp.src(utils.excludeUnderscoreLess(res.src))
       .pipe($.errorHandler())
       .pipe(p ? $.noop() : $.sourcemaps.init())
       .pipe(res.concat ? $.concat(res.concat) : $.noop())
@@ -78,7 +85,7 @@ Task.template.less = function(options) {
 Task.template.sass = function(options) {
   options = extend({outputStyle: 'compressed'}, options || {});
   return (res)=> {
-    $.gulp.src(res.src)
+    return $.gulp.src(res.src)
       .pipe($.errorHandler())
       .pipe(p ? $.noop() : $.sourcemaps.init())
       .pipe(res.concat ? $.concat(res.concat) : $.noop())
@@ -93,7 +100,7 @@ Task.template.pretty = function(options) { // CSS, XML, JSON, SQL
     preserveComments: true
   }, options || {});
   return (res)=> {
-    $.gulp.src(res.src)
+    return $.gulp.src(res.src)
       .pipe($.errorHandler())
       .pipe($.changed(res.dest))
       .pipe($.pretty(options))
@@ -102,7 +109,7 @@ Task.template.pretty = function(options) { // CSS, XML, JSON, SQL
 };
 Task.template.copy = function() {
   return (res)=> {
-    $.gulp.src(res.src)
+    return $.gulp.src(res.src)
       .pipe($.changed(res.dest))
       .pipe($.gulp.dest(res.dest));
   };
@@ -122,5 +129,5 @@ Task.watch = function(tasknames) {
 };
 
 Task.default = function(tasknames) {
-  $.gulp.task('default', tasknames || Object.keys(_tasks));
+  Task.define('default', null, tasknames || Object.keys(_tasks));
 };

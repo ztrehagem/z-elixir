@@ -17,8 +17,8 @@ Resource.create = function(resource) {
 };
 Resource.add = function(name, resArgs) {
   resArgs = Array.prototype.slice.call(arguments, 1);
-  for (var resArg of resArgs) {
-    for (var res of wrapArray(resArg)) {
+  for (let resArg of resArgs) {
+    for (let res of wrapArray(resArg)) {
       if (!(res instanceof Builder)) return;
       (_resources[name] = (_resources[name] || [])).push(res._get());
     }

@@ -14,9 +14,12 @@ const modules = {
   noop: 'gulp-nop',
   plumber: 'gulp-plumber',
   changed: 'gulp-changed',
+  eslint: 'gulp-eslint',
+  ngAnnotate: 'gulp-ng-annotate',
   notifier: 'node-notifier',
   minimist: 'minimist',
   dotenv: 'dotenv',
+  mergeStream: 'merge-stream',
   dateFormat: 'dateformat'
 };
 
