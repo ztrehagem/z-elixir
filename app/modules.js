@@ -29,7 +29,7 @@ require('./utils').forObj(modules, (key, name)=> {
 
 $.errorHandler = function() {
   return $.plumber((error)=> {
-    $.notifier.norify({
+    $.notifier.notify({
       title: error.plugin,
       message: error.message
     });
