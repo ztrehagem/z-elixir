@@ -1,2 +1,3 @@
-var str = 'It works!';
-console.log(str);
+import test from './test';
+
+test();

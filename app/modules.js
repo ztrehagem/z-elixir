@@ -20,7 +20,11 @@ const modules = {
   minimist: 'minimist',
   dotenv: 'dotenv',
   mergeStream: 'merge-stream',
-  dateFormat: 'dateformat'
+  dateFormat: 'dateformat',
+  browserify: 'browserify',
+  watchify: 'watchify',
+  source: 'vinyl-source-stream',
+  buffer: 'vinyl-buffer'
 };
 
 require('./utils').forObj(modules, (key, name)=> {

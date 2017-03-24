@@ -38,6 +38,11 @@ Resource.template.js = function(options) { return Resource.create()
   .concat('app.js')
   .dest('js');
 };
+Resource.template.esnext = function(options) { return Resource.create()
+  .src('js/app.js')
+  .option({source: 'app.js'})
+  .dest('js');
+};
 Resource.template.less = function(options) { return Resource.create()
   .src('less/**/*.less')
   .dest('css');

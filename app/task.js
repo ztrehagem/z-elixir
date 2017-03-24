@@ -115,6 +115,43 @@ Task.template.copy = function() {
   };
 };
 
+Task.esnext = function(res) {
+  Task.esnext.enabled = true;
+  res = res.resource;
+
+  Task.esnext.bundle = (watching)=> {
+    const bundlee = $.browserify({
+      entries: res.src,
+      debug: true,
+      plugin: watching ? [$.watchify] : null
+    })
+    .transform('babelify', {presets: ['es2015']})
+    .on('update', ()=> {
+      console.log('rebuild js start');
+      bundler().on('end', ()=> console.log('rebuild js succeeded'));
+    });
+
+    const bundler = ()=> {
+      console.log('bundle!');
+      return bundlee.bundle()
+        .on('error', (err)=> console.log(err.message))
+        .pipe($.source(res.source))
+        .pipe($.buffer())
+        .pipe(config.enabledEslint ? $.eslint() : $.noop())
+        .pipe(config.enabledEslint ? $.eslint.format() : $.noop())
+        .pipe(p ? $.noop() : $.sourcemaps.init())
+        .pipe(config.enabledNgAnnotate ? $.ngAnnotate() : $.noop())
+        .pipe($.uglify())
+        .pipe(p ? $.noop() : $.sourcemaps.write('./'))
+        .pipe($.gulp.dest(res.dest));
+    };
+
+    return bundler();
+  };
+
+  $.gulp.task('esnext', [], ()=> Task.esnext.bundle());
+};
+
 Task.watch = function(tasknames) {
   $.gulp.task('w', ['watch']);
   $.gulp.task('watch', ['default'], ()=> {
@@ -125,9 +162,15 @@ Task.watch = function(tasknames) {
       }, []), [name]);
     });
 
+    if (Task.esnext.enabled) {
+      $.gulp.task('esnext', [], ()=> Task.esnext.bundle(true));
+    }
+
   });
 };
 
 Task.default = function(tasknames) {
-  Task.define('default', null, tasknames || Object.keys(_tasks));
+  Task.define('default', null, tasknames || Object.keys(_tasks).concat(
+    Task.esnext.enabled ? ['esnext'] : []
+  ));
 };
