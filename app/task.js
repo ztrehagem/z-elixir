@@ -121,7 +121,7 @@ Task.esnext = function(res) {
   res = res.resource;
 
   Task.esnext.bundle = (watching)=> {
-    const bundlee = $.browserify({
+    const b = $.browserify({
       entries: res.src,
       debug: true,
       plugin: watching ? [$.watchify] : null
@@ -133,8 +133,7 @@ Task.esnext = function(res) {
     });
 
     const bundler = ()=> {
-      console.log('bundle!');
-      return bundlee.bundle()
+      return b.bundle()
         .on('error', (err)=> console.log(err.message))
         .pipe($.source(res.source))
         .pipe($.buffer())
@@ -154,6 +153,10 @@ Task.esnext = function(res) {
 };
 
 Task.watch = function(tasknames) {
+  if (Task.esnext.enabled) {
+    $.gulp.task('esnext', [], ()=> Task.esnext.bundle(true));
+  }
+
   $.gulp.task('w', ['watch']);
   $.gulp.task('watch', ['default'], ()=> {
 
@@ -163,9 +166,6 @@ Task.watch = function(tasknames) {
       }, []), [name]);
     });
 
-    if (Task.esnext.enabled) {
-      $.gulp.task('esnext', [], ()=> Task.esnext.bundle(true));
-    }
 
   });
 };
