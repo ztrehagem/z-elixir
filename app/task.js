@@ -63,8 +63,9 @@ Task.template.js = function(options) {
       .pipe(config.enabledEslint ? $.eslint() : $.noop())
       .pipe(config.enabledEslint ? $.eslint.format() : $.noop())
       .pipe(p ? $.noop() : $.sourcemaps.init())
-      .pipe(config.enabledNgAnnotate ? $.ngAnnotate() : $.noop())
       .pipe(res.concat ? $.concat(res.concat) : $.noop())
+      .pipe(config.enabledBabel ? $.babel({presets: 'es2015'}) : $.noop())
+      .pipe(config.enabledNgAnnotate ? $.ngAnnotate() : $.noop())
       .pipe($.uglify(options))
       .pipe(p ? $.noop() : $.sourcemaps.write('./'))
       .pipe($.gulp.dest(res.dest));

@@ -16,6 +16,7 @@ const modules = {
   changed: 'gulp-changed',
   eslint: 'gulp-eslint',
   ngAnnotate: 'gulp-ng-annotate',
+  babel: 'gulp-babel',
   notifier: 'node-notifier',
   minimist: 'minimist',
   dotenv: 'dotenv',

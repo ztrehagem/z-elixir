@@ -1,3 +1,1 @@
-import test from './test';
-
-test();
+window.app = angular.module('app', []);

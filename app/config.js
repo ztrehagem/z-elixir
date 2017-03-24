@@ -4,3 +4,4 @@ exports.destDir = 'public/';
 // js
 exports.enabledEslint = false;
 exports.enabledNgAnnotate = false;
+exports.enabledBabel = false;
